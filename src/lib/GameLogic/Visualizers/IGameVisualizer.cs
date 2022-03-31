@@ -1,4 +1,4 @@
-namespace LightsOut.Web
+namespace LightsOut.GameLogic
 {
     public interface IGameVisualizer
     {

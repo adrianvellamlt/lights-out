@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace LightsOut.Web
+namespace LightsOut.GameLogic
 {
     public class TextGameVisualizer : IGameVisualizer
     {
