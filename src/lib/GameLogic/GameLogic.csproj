@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>LightsOut.GameLogic</AssemblyName>
+    <RootNamespace>LightsOut.GameLogic</RootNamespace>
+    <Authors>Adrian Vella</Authors>
+    <Product>Lights Out Game Logic</Product>
+    <Description>Allows game logic to be shared across different app platforms</Description>
+    <RepositoryType>git</RepositoryType>
+    <LangVersion>9.0</LangVersion>
+    <Version>0.0.1</Version>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>
