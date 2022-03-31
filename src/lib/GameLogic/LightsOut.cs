@@ -23,12 +23,12 @@ namespace LightsOut.GameLogic
 
                 var randomColumn = rnd.Next(0, noOfColumns);
 
-                if (Matrix[randomColumn, randomColumn])
+                if (Matrix[randomRow, randomColumn])
                 {
                     continue; // this light is already on, was picked up randomly before
                 }
 
-                Matrix[randomColumn, randomColumn] = true;
+                Matrix[randomRow, randomColumn] = true;
 
                 noOfSwitchedOnLights--;
 
