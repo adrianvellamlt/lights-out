@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.AddSingleton<IMemoryCache, MemoryCache>();
 
-            services.AddTransient(typeof(InMemoryCache<>));
+            services.AddSingleton(typeof(InMemoryCache<>));
 
             services.AddScoped<ICacheProviderFactory, CacheProviderFactory>();
 
