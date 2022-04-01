@@ -7,6 +7,7 @@ namespace LightsOut.GameLogic
         public byte NoOfRows { get; init; }
         public byte NoOfColumns { get; init; }
         public bool[,] Matrix { get; init; }
+        public bool IsSolved { get; private set; }
 
         public LightsOut(byte noOfRows, byte noOfColumns, byte noOfSwitchedOnLights)
         {
@@ -38,6 +39,8 @@ namespace LightsOut.GameLogic
 
         public void ToggleCell(byte row, byte column)
         {
+            Matrix[row, column] = !Matrix[row, column];
+
             if (row > 0)
             {
                 Matrix[row - 1, column] = !Matrix[row - 1, column];
@@ -57,6 +60,13 @@ namespace LightsOut.GameLogic
             {
                 Matrix[row, column + 1] = !Matrix[row, column + 1];
             }
+
+            foreach (var cell in Matrix)
+            {
+                if (!cell) return;
+            }
+
+            IsSolved = true;
         }
     }
 }

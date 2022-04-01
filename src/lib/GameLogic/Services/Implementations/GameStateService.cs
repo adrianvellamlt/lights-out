@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using LightsOut.Infrastructure;
@@ -6,31 +7,60 @@ namespace LightsOut.GameLogic
 {
     public class GameStateService : IGameStateService
     {
-        private ICache<byte[]> GameStateCache { get; }
+        private ISystemClock SystemClock { get; }
+        private ICache<GameState> GameStateCache { get; }
+        private IGameSettingsService GameSettingsService { get; }
 
-        public GameStateService(ICacheProviderFactory cacheProvider)
+        public GameStateService(ISystemClock systemClock, ICacheProviderFactory cacheProvider, IGameSettingsService gameSettingsService)
         {
-            GameStateCache = cacheProvider.GetCacheInstance<byte[]>(CacheType.InMemory);
+            SystemClock = systemClock;
+            GameStateCache = cacheProvider.GetCacheInstance<GameState>(CacheType.InMemory);
+            GameSettingsService = gameSettingsService;
         }
 
-        public Task<GameState?> GetLastStateAsync(int gameId, CancellationToken cancellationToken)
+        public async Task<GameState> InitializeGameAsync(CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            var settings = await GameSettingsService.GetGameSettingsAsync(cancellationToken);
+
+            var game = new LightsOut(settings.NoOfRows, settings.NoOfColumns, settings.NoOfSwitchedOnLights);
+
+            var state = new GameState(Guid.NewGuid(), SystemClock.UtcNow.DateTime, game);
+
+            await GameStateCache.SetAsync(state.Id.ToString(), state, settings.GameMaxDuration);
+
+            return state;
         }
 
-        public Task<GameState> InitializeGameAsync(CancellationToken cancellationToken)
+        public Task<GameState?> GetLastStateAsync(Guid gameId, CancellationToken cancellationToken)
+            => GameStateCache.GetAsync(gameId.ToString());
+
+        public async Task SaveStateAsync(GameState gameState, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            var settings = await GameSettingsService.GetGameSettingsAsync(cancellationToken);
+
+            var remainingTime = settings.GameMaxDuration - (SystemClock.UtcNow.DateTime - gameState.StartTimeUtc);
+
+            if (gameState.Game.IsSolved)
+            {
+                gameState.SetCompletedTimeStamp(SystemClock.UtcNow.DateTime);
+
+                //TODO: maybe persist this for some sort of high score system
+            }
+            else
+            {
+                await GameStateCache.SetAsync(gameState.Id.ToString(), gameState, remainingTime);
+            }
         }
 
-        public Task SaveStateAsync(GameState gameState, CancellationToken cancellationToken)
+        public async Task SurrenderAsync(Guid gameId, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
-        }
+            var state = await GameStateCache.GetAsync(gameId.ToString());
 
-        public Task SurrenderAsync(int gameId, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
+            if (state == null) return;
+
+            state.SetSurrenderedTimeStamp(SystemClock.UtcNow.DateTime);
+
+            //TODO: maybe persist this for some sort of high score system
         }
     }
 }
