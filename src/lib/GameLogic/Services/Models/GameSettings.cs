@@ -7,6 +7,6 @@ namespace LightsOut.GameLogic
         public byte NoOfRows { get; set; }
         public byte NoOfColumns { get; set; }
         public byte NoOfSwitchedOnLights { get; set; }
-        public TimeSpan? GameMaxDuration { get; set; } = TimeSpan.FromHours(4);
+        public TimeSpan GameMaxDuration { get; set; } = TimeSpan.FromMinutes(30);
     }
 }
