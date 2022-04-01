@@ -19,7 +19,7 @@ namespace LightsOut.Web
         public GameController(
             IGameStateService gameStateService,
             IGameSettingsService gameSettingsService,
-            IGameVisualizer gameVisualizer, //TODO: implement a couple of these and resolve them according to Accept Header
+            IGameVisualizer gameVisualizer,
             ISystemClock systemClock
         )
         {
@@ -60,6 +60,9 @@ namespace LightsOut.Web
             {
                 var drawing = GameVisualizer.Draw(gameState.Game);
 
+                HttpContext.Response.Headers.Add("X-MoveCount", gameState.NoOfMoves.ToString());
+                HttpContext.Response.Headers.Add("X-StartTime", new DateTimeOffset(gameState.StartTimeUtc, TimeSpan.Zero).ToUnixTimeSeconds().ToString());
+
                 return Ok(drawing);
             }
         }
@@ -74,9 +77,14 @@ namespace LightsOut.Web
 
             gameState.Game.ToggleCell(model.RowNumber, model.ColumnNumber);
 
+            gameState.IncrementMoveCounter();
+
             await GameStateService.SaveStateAsync(gameState, cancellationToken);
 
             var drawing = GameVisualizer.Draw(gameState.Game);
+            
+            HttpContext.Response.Headers.Add("X-MoveCount", gameState.NoOfMoves.ToString());
+            HttpContext.Response.Headers.Add("X-StartTime", new DateTimeOffset(gameState.StartTimeUtc, TimeSpan.Zero).ToUnixTimeSeconds().ToString());
 
             return Ok(drawing);
         }
