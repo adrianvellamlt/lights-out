@@ -70,7 +70,7 @@ namespace LightsOut.Web
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseRouting();`
+            app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
