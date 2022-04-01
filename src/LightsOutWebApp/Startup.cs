@@ -34,7 +34,7 @@ namespace LightsOut.Web
             
             services.AddLightsOut();
 
-            services.AddScoped<IGameVisualizer, TextGameVisualizer>();
+            services.AddScoped<IGameVisualizer, HtmlGameVisualizer>();
 
             services.AddControllers().AddNewtonsoftJson();
 
