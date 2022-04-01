@@ -63,7 +63,7 @@ namespace LightsOut.GameLogic
 
             foreach (var cell in Matrix)
             {
-                if (!cell) return;
+                if (cell) return;
             }
 
             IsSolved = true;
