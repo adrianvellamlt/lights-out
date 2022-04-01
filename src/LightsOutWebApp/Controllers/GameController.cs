@@ -54,12 +54,13 @@ namespace LightsOut.Web
 
             if (gameState.SurrenderedAtUTC.HasValue)
             {
-                return Ok("GameOver! You took too long to solve this puzzle.");
+                return Ok("GameOver! The puzzle beat you.");
             }
             else
             {
                 var drawing = GameVisualizer.Draw(gameState.Game);
 
+                HttpContext.Response.Headers.Add("X-IsSolved", gameState.Game.IsSolved ? "1" : "0");
                 HttpContext.Response.Headers.Add("X-MoveCount", gameState.NoOfMoves.ToString());
                 HttpContext.Response.Headers.Add("X-StartTime", new DateTimeOffset(gameState.StartTimeUtc, TimeSpan.Zero).ToUnixTimeSeconds().ToString());
 
@@ -75,18 +76,42 @@ namespace LightsOut.Web
 
             if (gameState == null) return NotFound();
 
-            gameState.Game.ToggleCell(model.RowNumber, model.ColumnNumber);
+            if (!gameState.Game.IsSolved)
+            {
+                gameState.Game.ToggleCell(model.RowNumber, model.ColumnNumber);
 
-            gameState.IncrementMoveCounter();
+                gameState.IncrementMoveCounter();
 
-            await GameStateService.SaveStateAsync(gameState, cancellationToken);
+                await GameStateService.SaveStateAsync(gameState, cancellationToken);
+            }
 
             var drawing = GameVisualizer.Draw(gameState.Game);
             
+            HttpContext.Response.Headers.Add("X-IsSolved", gameState.Game.IsSolved ? "1" : "0");
             HttpContext.Response.Headers.Add("X-MoveCount", gameState.NoOfMoves.ToString());
             HttpContext.Response.Headers.Add("X-StartTime", new DateTimeOffset(gameState.StartTimeUtc, TimeSpan.Zero).ToUnixTimeSeconds().ToString());
 
             return Ok(drawing);
+        }
+
+        [HttpPost("surrender/{gameId}")]
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        public async Task<IActionResult> SurrenderAsync([FromRoute] Guid gameId, CancellationToken cancellationToken)
+        {
+            var gameState = await GameStateService.GetLastStateAsync(gameId, cancellationToken);
+
+            if (gameState == null) return NotFound();
+
+            if (gameState.Game.IsSolved)
+            {
+                return Ok("Puzzle was already solved!");
+            }
+
+            gameState.SetSurrenderedTimeStamp(SystemClock.UtcNow.DateTime);
+
+            await GameStateService.SaveStateAsync(gameState, cancellationToken);
+            
+            return Ok("GameOver! The puzzle beat you.");
         }
     }
 }

@@ -98,7 +98,9 @@
                     game.prepend(
                         `Moves: 0`, 
                         document.createElement("br"),
-                        `Started: ${new Date().toLocaleString()}`
+                        `Started: ${new Date().toLocaleString()}`,
+                        document.createElement("br"),
+                        document.createElement("br")
                     );
 
                     const gameWrapper = game.querySelector(".wrapper");
@@ -125,6 +127,12 @@
             btn.hidden = true;
 
             document.getElementById("start").hidden = false;
+
+            const game = document.getElementsByTagName("game")[0];
+
+            fetch(`/api/game/surrender/${game.id}`, { method: 'POST' })
+                .then(response => response.text())
+                .then(data => game.innerHTML = data);
         };
 
         const toggleCell = (cell) =>
@@ -137,6 +145,7 @@
 
             let startTime = undefined;
             let moveCount = undefined;
+            let isSolved = false;
 
             fetch(
                     `/api/game/toggle/${game.id}`,
@@ -153,6 +162,8 @@
                     startTime = new Date(parseInt(response.headers.get("x-starttime")) * 1000);
 
                     moveCount = parseInt(response.headers.get("x-movecount"));
+
+                    isSolved = parseInt(response.headers.get("x-issolved")) === 1;
                     
                     return response.text();
                 })
@@ -163,17 +174,33 @@
                     
                     game.innerHTML = data;
 
-                    game.prepend(
-                        `Moves: ${moveCount}`, 
-                        document.createElement("br"),
-                        `Started: ${startTime.toLocaleString()}`
-                    );
+                    if (isSolved)
+                    {
+                        game.prepend(
+                            "Puzzle Solved 🎉", 
+                            document.createElement("br"),
+                            document.createElement("br")
+                        );
+                    }
+                    else
+                    {
+                        game.prepend(
+                            `Moves: ${moveCount}`, 
+                            document.createElement("br"),
+                            `Started: ${startTime.toLocaleString()}`,
+                            document.createElement("br"),
+                            document.createElement("br")
+                        );
+                    }
 
                     document.querySelector("game .wrapper").style.cssText = styling;
                     
-                    for (const cell of document.querySelectorAll("game .wrapper .cell"))
+                    if (!isSolved)
                     {
-                        cell.setAttribute("onclick","toggleCell(this);");
+                        for (const cell of document.querySelectorAll("game .wrapper .cell"))
+                        {
+                            cell.setAttribute("onclick","toggleCell(this);");
+                        }
                     }
                 });
         };
