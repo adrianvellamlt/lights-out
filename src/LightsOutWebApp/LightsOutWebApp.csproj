@@ -11,6 +11,8 @@
     <Version>0.0.1</Version>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\lib\GameLogic\GameLogic.csproj"/>
@@ -20,5 +22,7 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1"/>
     <PackageReference Include="Serilog.AspNetCore" Version="5.0.0"/>
     <PackageReference Include="Hashids.net" Version="1.4.1"/>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.3"/>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0"/>
   </ItemGroup>
 </Project>
