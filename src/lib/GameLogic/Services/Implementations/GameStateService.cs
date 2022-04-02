@@ -18,13 +18,15 @@ namespace LightsOut.GameLogic
             GameSettingsService = gameSettingsService;
         }
 
-        public async Task<GameState> InitializeGameAsync(CancellationToken cancellationToken)
+        public async Task<GameState> InitializeGameAsync(ushort gameId, CancellationToken cancellationToken)
         {
-            var settings = await GameSettingsService.GetGameSettingsAsync(cancellationToken);
+            var settings = await GameSettingsService.GetGameSettingAsync(gameId, cancellationToken);
+
+            if (settings == null) throw new ArgumentException("Game Id is not valid", nameof(gameId));
 
             var game = new LightsOut(settings.NoOfRows, settings.NoOfColumns, settings.NoOfSwitchedOnLights);
 
-            var state = new GameState(Guid.NewGuid(), SystemClock.UtcNow.DateTime, game);
+            var state = new GameState(Guid.NewGuid(), gameId, SystemClock.UtcNow.DateTime, game);
 
             await GameStateCache.SetAsync(state.Id.ToString(), state, settings.GameMaxDuration);
 
@@ -36,7 +38,9 @@ namespace LightsOut.GameLogic
 
         public async Task SaveStateAsync(GameState gameState, CancellationToken cancellationToken)
         {
-            var settings = await GameSettingsService.GetGameSettingsAsync(cancellationToken);
+            var settings = await GameSettingsService.GetGameSettingAsync(gameState.GameId, cancellationToken);
+
+            if (settings == null) throw new ArgumentException("Game Id is not valid", nameof(gameState.GameId));
 
             var remainingTime = settings.GameMaxDuration - (SystemClock.UtcNow.DateTime - gameState.StartTimeUtc);
 
