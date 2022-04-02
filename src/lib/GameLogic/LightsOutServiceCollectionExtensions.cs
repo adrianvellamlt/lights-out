@@ -10,6 +10,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddScoped<IGameStateService, GameStateService>();
 
+            services.AddScoped<IHighScoreService, HighScoreService>();
+
             return services;
         }
     }

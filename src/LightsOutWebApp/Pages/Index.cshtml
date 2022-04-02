@@ -143,11 +143,22 @@
 
             fetch("/api/game/play/" + gameId)
                 .then(response => {
+                    if (response.status === 404)
+                    {
+                        game.prepend(
+                            "Game Over! You took too long to complete the puzzle", 
+                            document.createElement("br"),
+                            document.createElement("br")
+                        );
+
+                        document.getElementById("start").hidden = true;
+                        document.getElementById("surrender").hidden = false;
+                        document.getElementById("gameSelection").hidden = true;
+
+                        return;
+                    }
+
                     const gameStateId = response.headers.get("x-gamestateid");
-
-                    startTime = new Date(parseInt(response.headers.get("x-starttime")) * 1000);
-
-                    moveCount = parseInt(response.headers.get("x-movecount"));
 
                     const game = document.getElementsByTagName("game")[0];
 
@@ -158,13 +169,15 @@
                 .then(data => {
 
                     const game = document.getElementsByTagName("game")[0];
+
+                    window.gameStartTime = new Date();
                     
                     game.innerHTML = data;
                     
                     game.prepend(
                         `Moves: 0`, 
                         document.createElement("br"),
-                        `Started: ${new Date().toLocaleString()}`,
+                        `Started: ${window.gameStartTime.toLocaleString()}`,
                         document.createElement("br"),
                         document.createElement("br")
                     );
@@ -193,6 +206,7 @@
             btn.hidden = true;
 
             document.getElementById("start").hidden = false;
+            document.getElementById("surrender").hidden = true;
             document.getElementById("gameSelection").hidden = false;
 
             const game = document.getElementsByTagName("game")[0];
@@ -210,7 +224,7 @@
 
             const game = document.getElementsByTagName("game")[0];
 
-            let startTime = undefined;
+            let remainingSeconds = undefined;
             let moveCount = undefined;
             let isSolved = false;
 
@@ -225,8 +239,22 @@
                     }
                 )
                 .then(response => {
+                    if (response.status === 404)
+                    {
+                        game.prepend(
+                            "Game Over! You took too long to complete the puzzle", 
+                            document.createElement("br"),
+                            document.createElement("br")
+                        );
+                        
+                        document.getElementById("start").hidden = false;
+                        document.getElementById("surrender").hidden = true;
+                        document.getElementById("gameSelection").hidden = false;
 
-                    startTime = new Date(parseInt(response.headers.get("x-starttime")) * 1000);
+                        return;
+                    }
+
+                    remainingSeconds = parseInt(response.headers.get("x-remainingtime"));
 
                     moveCount = parseInt(response.headers.get("x-movecount"));
 
@@ -241,7 +269,19 @@
                     
                     game.innerHTML = data;
 
-                    if (isSolved)
+                    if (remainingSeconds === 0)
+                    {
+                        game.prepend(
+                            "Game Over! You took too long to complete the puzzle", 
+                            document.createElement("br"),
+                            document.createElement("br")
+                        );
+
+                        document.getElementById("start").hidden = false;
+                        document.getElementById("surrender").hidden = true;
+                        document.getElementById("gameSelection").hidden = false;
+                    }
+                    else if (isSolved)
                     {
                         game.prepend(
                             "Puzzle Solved 🎉", 
@@ -249,15 +289,16 @@
                             document.createElement("br")
                         );
 
-                        document.getElementById("surrender").hidden = false;
-                        document.getElementById("gameSelection").hidden = true;
+                        document.getElementById("start").hidden = false;
+                        document.getElementById("surrender").hidden = true;
+                        document.getElementById("gameSelection").hidden = false;
                     }
                     else
                     {
                         game.prepend(
                             `Moves: ${moveCount}`, 
                             document.createElement("br"),
-                            `Started: ${startTime.toLocaleString()}`,
+                            `Started: ${window.gameStartTime.toLocaleString()}`,
                             document.createElement("br"),
                             document.createElement("br")
                         );
@@ -265,7 +306,7 @@
 
                     document.querySelector("game .wrapper").style.cssText = styling;
                     
-                    if (!isSolved)
+                    if (!isSolved && remainingSeconds > 0)
                     {
                         for (const cell of document.querySelectorAll("game .wrapper .cell"))
                         {

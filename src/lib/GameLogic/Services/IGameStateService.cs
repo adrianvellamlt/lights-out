@@ -10,8 +10,8 @@ namespace LightsOut.GameLogic
 
         Task SaveStateAsync(GameState gameState, CancellationToken cancellationToken);
 
-        Task<GameState?> GetLastStateAsync(Guid gameId, CancellationToken cancellationToken);
+        Task<GameState?> GetLastStateAsync(Guid gameStateId, CancellationToken cancellationToken);
 
-        Task SurrenderAsync(Guid gameId, CancellationToken cancellationToken);
+        Task SurrenderAsync(Guid gameStateId, CancellationToken cancellationToken);
     }
 }
