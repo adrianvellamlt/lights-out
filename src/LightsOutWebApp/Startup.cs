@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using FluentMigrator.Runner;
 using HashidsNet;
 using LightsOut.GameLogic;
 using LightsOut.Infrastructure;
@@ -26,10 +27,34 @@ namespace LightsOut.Web
 
         public void ConfigureServices(IServiceCollection services)
         {
+            var sqliteConn = Configuration.GetConnectionString("SQLite");
+
+            // register migrations
+            services
+                .AddFluentMigratorCore()
+                .ConfigureRunner(options => options
+                    .AddSQLite()
+                    .WithGlobalConnectionString(sqliteConn)
+                    .ScanIn(typeof(GameLogic.LightsOut).Assembly).For.Migrations()
+                );
+
+            services.AddOptions();
+
+            services.Configure<ConnectionStringOptions>(Configuration.GetSection("ConnectionStrings"));
+
+            // one of the bootstrappers is the db migrator
+            services.AddBootrappers();
+
+            services.AddLogging(options =>
+            {
+                options.AddFluentMigratorConsole();
+            });
+
             services.AddTransient<ISystemClock, RealSystemClock>();
 
             services.AddCaching();
 
+            //TODO:" not using it currently. maybe remove later
             services.AddSingleton<IHashids>(_ => new Hashids(Configuration.GetValue<string>("Hashids:Salt")));
             
             services.AddLightsOut();
@@ -52,6 +77,8 @@ namespace LightsOut.Web
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
             });
+
+            services.AddHostedService<BootstrapperService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -78,10 +105,7 @@ namespace LightsOut.Web
 
                 endpoints.MapControllers();
 
-                endpoints.MapGet("/ping", async context => 
-                {
-                    await context.Response.WriteAsync("pong", context.RequestAborted);
-                });
+                endpoints.MapGet("/ping", context => context.Response.WriteAsync("pong", context.RequestAborted));
             });
         }
     }
