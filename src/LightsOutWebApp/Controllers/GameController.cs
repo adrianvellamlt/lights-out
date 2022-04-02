@@ -29,26 +29,26 @@ namespace LightsOut.Web
             SystemClock = systemClock;
         }
 
-        [HttpGet("play")]
+        [HttpGet("play/{gameId}")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        public async Task<IActionResult> NewGameAsync(CancellationToken cancellationToken)
+        public async Task<IActionResult> NewGameAsync([FromRoute] ushort gameId, CancellationToken cancellationToken)
         {
-            var gameState = await GameStateService.InitializeGameAsync(cancellationToken);
+            var gameState = await GameStateService.InitializeGameAsync(gameId, cancellationToken);
 
-            HttpContext.Response.Headers.Add("X-GameId", gameState.Id.ToString());
+            HttpContext.Response.Headers.Add("X-GameStateId", gameState.Id.ToString());
 
             var drawing = GameVisualizer.Draw(gameState.Game);
 
             return Ok(drawing);
         }
 
-        [HttpGet("draw/{gameId}")]
+        [HttpGet("draw/{gameStateId}")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        public async Task<IActionResult> DrawAsync([FromRoute] Guid gameId, CancellationToken cancellationToken)
+        public async Task<IActionResult> DrawAsync([FromRoute] Guid gameStateId, CancellationToken cancellationToken)
         {
-            if (gameId == Guid.Empty) return NotFound();
+            if (gameStateId == Guid.Empty) return NotFound();
 
-            var gameState = await GameStateService.GetLastStateAsync(gameId, cancellationToken);
+            var gameState = await GameStateService.GetLastStateAsync(gameStateId, cancellationToken);
 
             if (gameState == null) return NotFound();
 
@@ -68,11 +68,12 @@ namespace LightsOut.Web
             }
         }
 
-        [HttpPost("toggle/{gameId}")]
+        [HttpPost("toggle/{gameStateId}")]
+        [Consumes("application/json")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        public async Task<IActionResult> ToggleCellAsync([FromRoute] Guid gameId, [FromBody] ToggleCellViewModel model, CancellationToken cancellationToken)
+        public async Task<IActionResult> ToggleCellAsync([FromRoute] Guid gameStateId, [FromBody] ToggleCellViewModel model, CancellationToken cancellationToken)
         {
-            var gameState = await GameStateService.GetLastStateAsync(gameId, cancellationToken);
+            var gameState = await GameStateService.GetLastStateAsync(gameStateId, cancellationToken);
 
             if (gameState == null) return NotFound();
 
@@ -94,11 +95,11 @@ namespace LightsOut.Web
             return Ok(drawing);
         }
 
-        [HttpPost("surrender/{gameId}")]
+        [HttpPost("surrender/{gameStateId}")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        public async Task<IActionResult> SurrenderAsync([FromRoute] Guid gameId, CancellationToken cancellationToken)
+        public async Task<IActionResult> SurrenderAsync([FromRoute] Guid gameStateId, CancellationToken cancellationToken)
         {
-            var gameState = await GameStateService.GetLastStateAsync(gameId, cancellationToken);
+            var gameState = await GameStateService.GetLastStateAsync(gameStateId, cancellationToken);
 
             if (gameState == null) return NotFound();
 
