@@ -4,13 +4,13 @@ WORKDIR /app
 # Copy everything
 COPY . ./
 # Restore as distinct layers
-RUN dotnet restore
+RUN dotnet restore ./src/LightsOutWebApp/LightsOutWebApp.csproj
 
 # Copy everything else and build
-RUN dotnet publish -c Release -o out
+RUN dotnet publish -c Release -o out ./src/LightsOutWebApp/LightsOutWebApp.csproj
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
 COPY --from=build-env /app/out .
-ENTRYPOINT ["dotnet", "LightsOutWebApp.dll"]
+ENTRYPOINT ["dotnet", "LightsOut.Web.dll"]

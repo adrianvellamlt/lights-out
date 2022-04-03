@@ -45,7 +45,40 @@ During the API startup I have setup a ```BootstrapperService.cs``` service that 
 ***P.S*** The BootStrapper Service runs on a completely different thread (as a Background Service) so it does not slow down the startup process. Once all Bootstrappers are done, the ```StopAsync``` function is called.
 
 
-# Running the application
+# Running the API
 ## Option 1 - Dotnet CLI
+Ideally you have an environment variable ```ASPNETCORE_ENVIRONMENT: Development``` so you'd be able to view the swagger documentation.
+
+``` powershell
+# This requires dotnet 6.0 runtime
+# Navigate to the application root in your terminal and run the below command
+dotnet run --project .\src\LightsOutWebApp\LightsOutWebApp.csproj
+
+# start the app in your browser
+start https://localhost:7195
+```
+
+Once run, you'll be able to see the application logs in your console. \
+The API will run on ```https://localhost:7195 or http://localhost:5060```. \
+Settings can be found in ```src/LightsOutWebApp/Properties/launchSettings.json```
 
 ## Option 2 - Docker CLI
+``` powershell
+# Navigate to the application root in your terminal and run the below command
+
+# build the image
+docker build -t adrianvella-lightsout .
+
+# run the container as a daemon. logs will be visible wither in docker desktop or via your terminal
+docker run -d -p 8080:80 --env ASPNETCORE_ENVIRONMENT=Development --name adrianvella-lightsout adrianvella-lightsout
+
+# start the app in your browser
+start http://localhost:8080
+```
+
+
+## Options 3 - Visual Studio Code
+The tasks.json and launch.json files are already setup. Just open up VS Code in the application root and press F5.
+
+## API documentation
+Swashbuckle was used to generate the API documentation and it is available at ```{appUri}/swagger```.
