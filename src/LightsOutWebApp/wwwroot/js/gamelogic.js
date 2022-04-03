@@ -143,8 +143,7 @@ const surrender = (btn) =>
     const game = document.getElementsByTagName("game")[0];
 
     fetch(`/api/game/surrender/${game.id}`, { method: 'POST' })
-        .then(response => response.text())
-        .then(data => game.innerHTML = data);
+        .then(_ => game.innerHTML = "Game Over! The puzzle beat you!");
 };
 
 const toggleCell = (cell) =>

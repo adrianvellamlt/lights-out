@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LightsOut.Web
 {
+    /// <summary>
+    /// Provides GameSettings CRUD operations
+    /// </summary>
     [ApiController]
     [Route("/api/gamesettings")]
     [Consumes("application/json")]
@@ -20,6 +23,12 @@ namespace LightsOut.Web
             GameSettingsService = gameSettingsService;
         }
 
+        /// <summary>
+        /// Gets game settings that are currently available.
+        /// </summary>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <param name="gameId">GameId to filter result</param>
+        /// <returns>Returns collection of game settings.</returns>
         [HttpGet()]
         [ProducesResponseType(typeof(IEnumerable<GameSettingViewModel>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetGameSettingsAsync(CancellationToken cancellationToken, [FromQuery] ushort? gameId = null)
@@ -55,6 +64,12 @@ namespace LightsOut.Web
             return Ok(response);
         }
     
+        /// <summary>
+        /// Adds a new game setting
+        /// </summary>
+        /// <param name="model">Game setting details</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns>Returns stored game setting object.</returns>
         [HttpPost()]
         [ProducesResponseType(typeof(GameSettingViewModel), StatusCodes.Status201Created)]
         public async Task<IActionResult> AddGameSettingAsync([FromBody] UpdateGameSettingViewModel model, CancellationToken cancellationToken)
@@ -76,6 +91,12 @@ namespace LightsOut.Web
             );
         }
 
+        /// <summary>
+        /// Deletes the specified game setting
+        /// </summary>
+        /// <param name="id">Game Setting Id</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns>Returns Ok Status Code</returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteGameSettingAsync([FromRoute] ushort id, CancellationToken cancellationToken)
@@ -85,6 +106,13 @@ namespace LightsOut.Web
             return Ok();
         }
         
+        /// <summary>
+        /// Updates the specified game setting
+        /// </summary>
+        /// <param name="id">Game Setting Id</param>
+        /// <param name="model">New Game Setting details</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns>Returns Ok Status Code</returns>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> UpdateGameSettingAsync([FromRoute] ushort id, [FromBody] UpdateGameSettingViewModel model, CancellationToken cancellationToken)

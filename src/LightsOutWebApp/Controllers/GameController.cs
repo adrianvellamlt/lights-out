@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LightsOut.Web
 {
+    /// <summary>
+    /// Allows player to start a new game and toggle cells.
+    /// </summary>
     [ApiController]
     [Route("/api/game")]
     public class GameController : ControllerBase
@@ -33,6 +36,13 @@ namespace LightsOut.Web
             SystemClock = systemClock;
         }
 
+        /// <summary>
+        /// Creates a new game with the specified game Id
+        /// </summary>
+        /// <param name="gameId">Game Id - Specifies matrix size, complexity and game duration</param>
+        /// <param name="model">Model - username for highscores</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns>Returns a rendered version of the game</returns>
         [HttpPost("play/{gameId}")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         public async Task<IActionResult> NewGameAsync([FromRoute] ushort gameId, [FromBody] NewGameViewModel model, CancellationToken cancellationToken)
@@ -48,6 +58,12 @@ namespace LightsOut.Web
             return Ok(drawing);
         }
 
+        /// <summary>
+        /// Renders the latest state of the specified game state id
+        /// </summary>
+        /// <param name="gameStateId">GameStateId - provided each time a new game is initialized</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns>Returns a rendered version of the game</returns>
         [HttpGet("draw/{gameStateId}")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         public async Task<IActionResult> DrawAsync([FromRoute] Guid gameStateId, CancellationToken cancellationToken)
@@ -80,6 +96,13 @@ namespace LightsOut.Web
             }
         }
 
+        /// <summary>
+        /// Toggles a cell and its adjacent cells. Checks whether the puzzle is solved or game timer is over.
+        /// </summary>
+        /// <param name="gameStateId">GameStateId - provided each time a new game is initialized</param>
+        /// <param name="model">Model - Row x Column pointer</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns>Returns a rendered version of the game</returns>
         [HttpPost("toggle/{gameStateId}")]
         [Produces("text/plain")]
         [Consumes("application/json")]
@@ -116,15 +139,26 @@ namespace LightsOut.Web
             return Ok(drawing);
         }
 
+        /// <summary>
+        /// Game over :( Inserts your score in the high score table.
+        /// </summary>
+        /// <param name="gameStateId">GameStateId - provided each time a new game is initialized</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns>Returns Ok Status Code</returns>
         [HttpPost("surrender/{gameStateId}")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         public async Task<IActionResult> SurrenderAsync([FromRoute] Guid gameStateId, CancellationToken cancellationToken)
         {
             await GameStateService.SurrenderAsync(gameStateId, cancellationToken);
 
-            return Ok("GameOver! The puzzle beat you.");
+            return Ok();
         }
 
+        /// <summary>
+        /// Gets an ordered list of highscores based on certain game parameters.
+        /// </summary>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns>Returns a collection of highscore objects</returns>
         [HttpGet("highscores")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(HighScoreViewModel), StatusCodes.Status200OK)]
