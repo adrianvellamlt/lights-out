@@ -53,9 +53,6 @@ namespace LightsOut.Web
             services.AddTransient<ISystemClock, RealSystemClock>();
 
             services.AddCaching();
-
-            //TODO:" not using it currently. maybe remove later
-            services.AddSingleton<IHashids>(_ => new Hashids(Configuration.GetValue<string>("Hashids:Salt")));
             
             services.AddLightsOut();
 
