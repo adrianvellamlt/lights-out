@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Reflection;
 using FluentMigrator.Runner;
-using HashidsNet;
 using LightsOut.GameLogic;
 using LightsOut.Infrastructure;
 using Microsoft.AspNetCore.Builder;
