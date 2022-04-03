@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using LightsOut.GameLogic;
@@ -15,25 +16,30 @@ namespace LightsOut.Web
         private IGameStateService GameStateService { get; }
         private IGameSettingsService GameSettingsService { get; }
         private IGameVisualizer GameVisualizer { get; }
+        private IHighScoreService HighScoreService { get; }
         private ISystemClock SystemClock { get; }
         public GameController(
             IGameStateService gameStateService,
             IGameSettingsService gameSettingsService,
             IGameVisualizer gameVisualizer,
+            IHighScoreService highScoreService,
             ISystemClock systemClock
         )
         {
             GameStateService = gameStateService;
             GameSettingsService = gameSettingsService;
             GameVisualizer = gameVisualizer;
+            HighScoreService = highScoreService;
             SystemClock = systemClock;
         }
 
-        [HttpGet("play/{gameId}")]
+        [HttpPost("play/{gameId}")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        public async Task<IActionResult> NewGameAsync([FromRoute] ushort gameId, CancellationToken cancellationToken)
+        public async Task<IActionResult> NewGameAsync([FromRoute] ushort gameId, [FromBody] NewGameViewModel model, CancellationToken cancellationToken)
         {
-            var gameState = await GameStateService.InitializeGameAsync(gameId, cancellationToken);
+            if (model == null) return BadRequest();
+
+            var gameState = await GameStateService.InitializeGameAsync(gameId, model.Username, cancellationToken);
 
             HttpContext.Response.Headers.Add("X-GameStateId", gameState.Id.ToString());
 
@@ -75,10 +81,13 @@ namespace LightsOut.Web
         }
 
         [HttpPost("toggle/{gameStateId}")]
+        [Produces("text/plain")]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         public async Task<IActionResult> ToggleCellAsync([FromRoute] Guid gameStateId, [FromBody] ToggleCellViewModel model, CancellationToken cancellationToken)
         {
+            if (model == null) return BadRequest();
+
             var gameState = await GameStateService.GetLastStateAsync(gameStateId, cancellationToken);
 
             if (gameState == null) return NotFound();
@@ -99,7 +108,7 @@ namespace LightsOut.Web
             var remainingTime = (gameState.GameMaxDuration - timeTaken).Seconds;
 
             if (remainingTime < 0) remainingTime = 0;
-            
+
             HttpContext.Response.Headers.Add("X-IsSolved", gameState.Game.IsSolved ? "1" : "0");
             HttpContext.Response.Headers.Add("X-MoveCount", gameState.NoOfMoves.ToString());
             HttpContext.Response.Headers.Add("X-RemainingTime", remainingTime.ToString());
@@ -112,8 +121,35 @@ namespace LightsOut.Web
         public async Task<IActionResult> SurrenderAsync([FromRoute] Guid gameStateId, CancellationToken cancellationToken)
         {
             await GameStateService.SurrenderAsync(gameStateId, cancellationToken);
-            
+
             return Ok("GameOver! The puzzle beat you.");
+        }
+
+        [HttpGet("highscores")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(HighScoreViewModel), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetHighScoresAsync(CancellationToken cancellationToken)
+        {
+            var highScores = new List<HighScoreViewModel>();
+
+            ushort rank = 1;
+
+            foreach (var highScore in await HighScoreService.GetBestHighScoresAsync(100, cancellationToken))
+            {
+                highScores.Add(new HighScoreViewModel
+                (
+                    rank++,
+                    highScore.Username,
+                    highScore.ComplexityLevel,
+                    highScore.NoOfRows,
+                    highScore.NoOfColumns,
+                    highScore.RemainingLights,
+                    (long)highScore.TimeTaken.TotalSeconds,
+                    highScore.NoOfMoves
+                ));
+            }
+
+            return Ok(highScores);
         }
     }
 }

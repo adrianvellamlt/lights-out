@@ -26,7 +26,7 @@ namespace LightsOut.GameLogic
             HighScoreService = highScoreService;
         }
 
-        public async Task<GameState> InitializeGameAsync(ushort gameId, CancellationToken cancellationToken)
+        public async Task<GameState> InitializeGameAsync(ushort gameId, string username, CancellationToken cancellationToken)
         {
             var settings = await GameSettingsService.GetGameSettingAsync(gameId, cancellationToken);
 
@@ -34,7 +34,7 @@ namespace LightsOut.GameLogic
 
             var game = new LightsOut(settings.NoOfRows, settings.NoOfColumns, settings.NoOfSwitchedOnLights);
 
-            var state = new GameState(Guid.NewGuid(), gameId, SystemClock.UtcNow.DateTime, settings.GameMaxDuration, game);
+            var state = new GameState(Guid.NewGuid(), username, gameId, SystemClock.UtcNow.DateTime, settings.GameMaxDuration, game);
 
             await GameStateCache.SetAsync(state.Id.ToString(), state, settings.GameMaxDuration);
 
@@ -53,7 +53,8 @@ namespace LightsOut.GameLogic
             // game is not completed yet
             if (remainingTime > TimeSpan.Zero || !gameState.Game.IsSolved)
             {
-                await GameStateCache.SetAsync(gameState.Id.ToString(), gameState, remainingTime);
+                // as long as you keep playing, cache will not be cleared since I'm reseting the timer now
+                await GameStateCache.SetAsync(gameState.Id.ToString(), gameState, gameState.GameMaxDuration);
 
                 return;
             }
@@ -75,15 +76,16 @@ namespace LightsOut.GameLogic
 
             await HighScoreService.AddHighScoreAsync
             (
-                new HightScore
+                new HighScore
                 {
                     GameStateId = gameState.Id,
+                    Username = gameState.Username,
                     ComplexityLevel = settings.ComplexityLevel,
-                    NoOfColumns = settings.NoOfColumns,
                     NoOfRows = settings.NoOfRows,
-                    NoOfMoves = gameState.NoOfMoves,
+                    NoOfColumns = settings.NoOfColumns,
                     RemainingLights = remainingLights,
-                    TimeTaken = timeTaken
+                    TimeTaken = timeTaken,
+                    NoOfMoves = gameState.NoOfMoves
                 },
                 cancellationToken
             );
@@ -111,15 +113,16 @@ namespace LightsOut.GameLogic
 
             await HighScoreService.AddHighScoreAsync
             (
-                new HightScore
+                new HighScore
                 {
                     GameStateId = gameState.Id,
+                    Username = gameState.Username,
                     ComplexityLevel = settings.ComplexityLevel,
-                    NoOfColumns = settings.NoOfColumns,
                     NoOfRows = settings.NoOfRows,
-                    NoOfMoves = gameState.NoOfMoves,
+                    NoOfColumns = settings.NoOfColumns,
                     RemainingLights = remainingLights,
-                    TimeTaken = SystemClock.UtcNow.DateTime - gameState.StartTimeUtc
+                    TimeTaken = SystemClock.UtcNow.DateTime - gameState.StartTimeUtc,
+                    NoOfMoves = gameState.NoOfMoves
                 },
                 cancellationToken
             );

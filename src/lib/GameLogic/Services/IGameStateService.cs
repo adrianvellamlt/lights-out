@@ -6,7 +6,7 @@ namespace LightsOut.GameLogic
 {
     public interface IGameStateService
     {
-        Task<GameState> InitializeGameAsync(ushort gameId, CancellationToken cancellationToken);
+        Task<GameState> InitializeGameAsync(ushort gameId, string username, CancellationToken cancellationToken);
 
         Task SaveStateAsync(GameState gameState, CancellationToken cancellationToken);
 
