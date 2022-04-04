@@ -1,7 +1,7 @@
 # Game Flow
 1. **Player initializes a new game.** \
 Based on the chosen game setting a new LightsOut game object is initialized. This contains the matrix itself and some other information that will be used throughout the game play through. This is called the ```GameState.cs```. \
-This GameState is stored in memory and any moves are stored in this InMemory Cache. For distributed installations of this web-app, distributed caches would need to be used.
+This GameState is stored in memory and any moves are applied to this InMemory Cache object.For distributed installations of this web-app, a distributed would be preferred.
 2. **Player toggles a cell** \
 Each time a player toggles a cell, the in memory GameState will be overridden and the cache duration will be reset. This ensures that if the player is active, their state will not be lost, but if the player is AFK, the state is automatically removed from the InMemory Cache. \
 With each action, the app checks if the game is either solved or the timer ran out and either way inserts a high score for the player.
@@ -16,11 +16,11 @@ The application is split up as follows:
 ```
 📂 src
 |_ 🕹 LightsOut.Web.dll
-    API with Game Settings CRUD, Server Side Rendering of Game, HighScore listing
+    API with Game Settings CRUD, Server Side Rendering of the Game, HighScore listing
 
 |_ 📂 lib
 |___ LightsOut.GameLogic.dll
-        All game logic and services that deal with game settings and highscores
+        All game logic and services that deal with game settings and highscores. (DB migrations are in this class library.)
 
 |___ LightsOut.Infrastructure.dll
         Some infrastructure stuff, namely caching and a system clock implementation
